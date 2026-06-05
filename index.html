@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>The Basic Land Game</title>
+  <meta name="description" content="The Basic Land Game — a community Magic: The Gathering land variant. Pass-and-play or vs CPU." />
+  <meta name="theme-color" content="#1a1a2e" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 60%, #16213e 100%);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #eee;
+      padding: 24px;
+      text-align: center;
+    }
+    .container { max-width: 560px; }
+    .emojis {
+      font-size: clamp(2.5rem, 12vw, 4.5rem);
+      letter-spacing: 0.15em;
+      line-height: 1.2;
+      filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.5));
+      animation: float 4s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    h1 {
+      font-size: clamp(2rem, 9vw, 3.25rem);
+      margin: 1rem 0 0.5rem;
+      background: linear-gradient(90deg, #eab308, #22c55e, #ef4444, #a855f7, #3b82f6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-weight: 800;
+    }
+    p.tag {
+      font-size: clamp(1rem, 4vw, 1.2rem);
+      opacity: 0.85;
+      margin-bottom: 2rem;
+      line-height: 1.5;
+    }
+    .btn {
+      display: inline-block;
+      padding: 16px 48px;
+      background: linear-gradient(135deg, #e94560, #c81e45);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 1.2rem;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 6px 18px rgba(233, 69, 96, 0.4);
+    }
+    .btn:hover { transform: translateY(-3px); box-shadow: 0 10px 26px rgba(233, 69, 96, 0.55); }
+    .btn:active { transform: translateY(-1px); }
+    .sub {
+      margin-top: 2.25rem;
+      font-size: 0.85rem;
+      opacity: 0.55;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="emojis">🌻🌲🌋💀🌊</div>
+    <h1>The Basic Land Game</h1>
+    <p class="tag">A community Magic: The Gathering land battle. Race to a Rainbow or Five&#8209;of&#8209;a&#8209;Kind — pass&#8209;and&#8209;play or against the CPU.</p>
+    <a href="game.html" class="btn">▶ Play</a>
+    <p class="sub">Plays fully offline. Add to your home screen to install.</p>
+  </div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch((err) => console.warn('SW registration failed', err));
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "basic-land-game",
+  "version": "1.0.0",
+  "description": "The Basic Land Game — a community Magic-inspired card game, as a PWA. 2-player pass-and-play and vs-CPU.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "selfplay": "node tests/play.mjs",
+    "serve": "node serve.mjs"
+  },
+  "license": "MIT"
+}

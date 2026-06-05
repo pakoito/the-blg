@@ -1,0 +1,51 @@
+# Deploys the static site to GitHub Pages — but only after the engine tests pass.
+#
+# To use this method: in the repo, Settings → Pages → Build and deployment →
+# Source: "GitHub Actions". Every push to `main` then runs the tests and, if
+# they pass, publishes the site. You can also trigger it manually from the
+# Actions tab (workflow_dispatch).
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Permissions the deploy-pages action needs.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never run two deploys at once; let an in-flight one finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Run engine test suite
+        run: node --test
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # The site is the repo root (no build step) — ship it as-is.
+          path: '.'
+      - id: deployment
+        uses: actions/deploy-pages@v4

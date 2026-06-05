@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>The Basic Land Game</title>
+  <meta name="description" content="Play The Basic Land Game — a community Magic: The Gathering land variant." />
+  <meta name="theme-color" content="#1a1a2e" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ========== Game screen (hidden until a game starts) ========== -->
+  <div id="app" class="hidden">
+    <div id="status-bar">
+      <div id="turn-pill"><span class="turn-dot"></span><span id="turn-text">—</span></div>
+      <div id="variant-tags"></div>
+      <button id="btn-rules" class="bar-btn">📖 Rules</button>
+      <button id="btn-menu" class="bar-btn alt">⚙ Menu</button>
+    </div>
+
+    <main>
+      <section id="opp-panel" class="board-panel"></section>
+      <section id="me-panel" class="board-panel"></section>
+    </main>
+
+    <footer>
+      <div class="log-head">Game log</div>
+      <div id="log"></div>
+    </footer>
+  </div>
+
+  <!-- ========== Mode selection ========== -->
+  <div id="mode-overlay" class="overlay">
+    <div class="modal">
+      <h2><span class="emojis">🌻🌲🌋💀🌊</span></h2>
+      <h2>The Basic Land Game</h2>
+      <p class="lead">Pick a mode and any variants, then start. Race to a Rainbow (one of each land) or Five&#8209;of&#8209;a&#8209;Kind.</p>
+
+      <div class="section-label">Mode</div>
+      <div class="mode-grid">
+        <div class="mode-option selected" data-mode="cpu">
+          <div class="mo-emoji">🤖</div>
+          <div class="mo-title">vs CPU</div>
+          <div class="mo-desc">Play against the computer</div>
+        </div>
+        <div class="mode-option" data-mode="2p">
+          <div class="mo-emoji">👥</div>
+          <div class="mo-title">2 Players</div>
+          <div class="mo-desc">Pass &amp; play on one device</div>
+        </div>
+      </div>
+
+      <div class="names-row">
+        <input id="name-0" type="text" maxlength="16" placeholder="You" value="You" />
+        <input id="name-1" type="text" maxlength="16" placeholder="CPU" value="CPU" />
+      </div>
+
+      <div id="first-pick-wrap">
+        <div class="section-label">Who goes first?</div>
+        <div class="first-pick" id="first-pick">
+          <button data-first="random" class="selected">🎲 Random</button>
+          <button data-first="0" id="first-0">You</button>
+          <button data-first="1" id="first-1">CPU</button>
+        </div>
+      </div>
+
+      <div class="section-label">Variants</div>
+      <label class="variant">
+        <input type="checkbox" id="v-thoughtseize" />
+        <div>
+          <div class="v-title">💀 Thoughtseize Bog</div>
+          <div class="v-desc">Bog makes your opponent reveal their <b>whole hand</b> (not just 3) before you pick a card to discard.</div>
+        </div>
+      </label>
+      <label class="variant">
+        <input type="checkbox" id="v-bluewhite" />
+        <div>
+          <div class="v-title">🌊 Blue draws / 🌻 White flickers</div>
+          <div class="v-desc">Tide <b>draws a card</b> on enter instead of Scry; Meadow becomes Cloudshift — <b>re-trigger one of your lands</b> in play.</div>
+        </div>
+      </label>
+      <label class="variant">
+        <input type="checkbox" id="v-fifty" />
+        <div>
+          <div class="v-title">🃏 50-card decks</div>
+          <div class="v-desc">Ten of each land instead of five — the win pieces are easier to find.</div>
+        </div>
+      </label>
+
+      <button id="start-game" class="primary-btn">▶ Start Game</button>
+    </div>
+  </div>
+
+  <!-- ========== Handoff (pass-and-play) ========== -->
+  <div id="handoff" class="overlay hidden">
+    <div class="modal">
+      <div class="ho-emoji">📱➡️</div>
+      <h2 id="handoff-name">Pass the device</h2>
+      <p class="lead" id="handoff-sub">Hand the device to the next player.</p>
+      <button id="handoff-ready" class="primary-btn">I'm ready — show my view</button>
+    </div>
+  </div>
+
+  <!-- ========== Decision modal (counter / scry / forest / volcano / bog / cloudshift) ========== -->
+  <div id="decision" class="overlay hidden">
+    <div class="modal">
+      <div id="decision-banner" class="prompt-banner"></div>
+      <div id="decision-body"></div>
+    </div>
+  </div>
+
+  <!-- ========== Rules ========== -->
+  <div id="rules-modal" class="overlay hidden">
+    <div class="modal">
+      <button class="modal-close" id="btn-close-rules">✕</button>
+      <h2>📖 How to play</h2>
+      <div id="rules-content"></div>
+    </div>
+  </div>
+
+  <!-- ========== Win ========== -->
+  <div id="win-overlay" class="overlay hidden">
+    <div class="modal">
+      <div class="win-emoji" id="win-emoji">🏆</div>
+      <div class="win-title" id="win-title">Winner</div>
+      <div class="win-cond" id="win-cond"></div>
+      <button id="btn-play-again" class="primary-btn">Play again</button>
+    </div>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch((err) => console.warn('SW registration failed', err));
+      });
+    }
+  </script>
+  <script type="module" src="src/ui.js"></script>
+</body>
+</html>
