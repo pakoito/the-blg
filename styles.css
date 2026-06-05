@@ -227,6 +227,29 @@ main {
 .chip .x { color: var(--text-secondary); font-weight: 600; }
 .empty-note { color: var(--text-secondary); font-size: 0.85rem; font-style: italic; }
 
+/* Discard pile (graveyard): public info, shown as smaller dimmed/dashed chips
+   so it reads as "seen, not in play" without competing with the board. */
+.graveyard-row {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  align-items: center;
+  min-height: 1.8rem;
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.09);
+}
+.graveyard-row .zone-label { font-size: 1rem; opacity: 0.65; margin-right: 0.05rem; }
+.chip.disc {
+  padding: 0.16rem 0.44rem;
+  font-size: 0.82rem;
+  background: rgba(0, 0, 0, 0.22);
+  border-width: 1px;
+  border-style: dashed;
+  opacity: 0.75;
+}
+.chip.disc .em { font-size: 1rem; filter: grayscale(0.35); }
+
 /* Hand */
 .hand-label {
   font-size: 0.8rem;

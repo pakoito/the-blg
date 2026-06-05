@@ -477,6 +477,18 @@ function renderPanel(el, v, viewSeat, isOpp) {
     `<span class="chip" style="--c:${color(t)}"><span class="em">${emoji(t)}</span>${name(t)} <span class="x">×${counts[t]}</span></span>`
   ).join('') || '<span class="empty-note">no lands in play yet</span>';
 
+  // Discard pile (a.k.a. graveyard) — PUBLIC info in this game, so we show its
+  // grouped contents at a glance for both players. Dimmed/dashed to read as
+  // "seen but not in play" — handy for tracking copies toward five-of-a-kind.
+  const discCounts = TYPES.reduce((m, t) => ((m[t] = 0), m), {});
+  for (const t of data.discard) discCounts[t]++;
+  const discChips = TYPES.filter((t) => discCounts[t] > 0).map((t) =>
+    `<span class="chip disc" style="--c:${color(t)}" title="${name(t)} ×${discCounts[t]} in discard"><span class="em">${emoji(t)}</span><span class="x">×${discCounts[t]}</span></span>`
+  ).join('');
+  const discardRow = `<div class="graveyard-row"><span class="zone-label" title="Discard pile (public)">🗑️</span>${
+    discChips || '<span class="empty-note">empty</span>'
+  }</div>`;
+
   // Hand region differs for me vs opponent.
   let handHtml;
   if (isOpp) {
@@ -488,7 +500,6 @@ function renderPanel(el, v, viewSeat, isOpp) {
   const meta = `
     <span class="meta-chip">🃏 hand ${isOpp ? data.handCount : data.hand.length}</span>
     <span class="meta-chip">📚 deck ${data.deckCount}</span>
-    <span class="meta-chip">🗑️ discard ${data.discard.length}</span>
   `;
 
   const distLabel = data.distance === 0 ? 'WINNING' : `${data.distance} to win`;
@@ -508,6 +519,7 @@ function renderPanel(el, v, viewSeat, isOpp) {
       <div class="distance-badge">${distLabel}</div>
     </div>
     <div class="board-chips">${chips}</div>
+    ${discardRow}
     ${handHtml}
   `;
 
@@ -709,6 +721,9 @@ function setupAgentApi() {
       const aw = game ? game.awaiting : null;
       return { awaiting: aw, legalActions: legalActionsFor(aw) };
     },
+    // Re-render from the current (possibly hand-mutated) game state without
+    // applying an action — handy when setting up a scenario via window.blg.game.
+    rerender: () => { render(); return game ? game.awaiting : null; },
     newGame(opts = {}) {
       // Map a friendly {mode,config,seed,firstPlayer} into a fresh game.
       return newGame({
