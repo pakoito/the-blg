@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- "Fanned lands" — three land-cards spelling B L G in the in-game land colors
+       (Volcano red / Tide blue / Forest green), with two accent pips for the
+       remaining lands: Meadow (gold = white) and Bog (purple = black). -->
+  <!-- Transparent background: no backing rect; the launcher supplies the backdrop. -->
+  <g font-family="'Arial Black', Arial, Helvetica, sans-serif" font-weight="900"
+     text-anchor="middle" fill="#ffffff">
+    <!-- LEFT: Volcano red, "B" + Meadow (gold/white) pip (drawn first → behind) -->
+    <g transform="translate(150,288) rotate(-16)">
+      <rect x="-64" y="-94" width="128" height="188" rx="18" fill="#ef4444"
+            stroke="rgba(0,0,0,0.28)" stroke-width="3"/>
+      <text x="0" y="30" font-size="98">B</text>
+      <circle cx="-34" cy="-66" r="16" fill="#eab308" stroke="rgba(0,0,0,0.3)" stroke-width="2"/>
+    </g>
+    <!-- RIGHT: Forest green, "G" + Bog (purple/black) pip -->
+    <g transform="translate(362,288) rotate(16)">
+      <rect x="-64" y="-94" width="128" height="188" rx="18" fill="#22c55e"
+            stroke="rgba(0,0,0,0.28)" stroke-width="3"/>
+      <text x="0" y="30" font-size="98">G</text>
+      <circle cx="34" cy="-66" r="16" fill="#a855f7" stroke="rgba(0,0,0,0.3)" stroke-width="2"/>
+    </g>
+    <!-- CENTER: Tide blue, "L" (drawn last → in front) -->
+    <g transform="translate(256,250)">
+      <rect x="-68" y="-100" width="136" height="200" rx="20" fill="#3b82f6"
+            stroke="rgba(255,255,255,0.22)" stroke-width="3"/>
+      <text x="0" y="32" font-size="104">L</text>
+    </g>
+  </g>
+</svg>

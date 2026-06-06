@@ -2,7 +2,7 @@
 // Cache-first, precaches every app asset so the game plays fully offline.
 // Bump CACHE_VERSION whenever any precached asset changes.
 
-const CACHE_VERSION = 'blg-v3';
+const CACHE_VERSION = 'blg-v4';
 
 // All app assets. Paths are relative to the service-worker scope (the project
 // root), so this works regardless of where the app is hosted.
@@ -14,6 +14,8 @@ const ASSETS = [
   'manifest.webmanifest',
   'icon-192.png',
   'icon-512.png',
+  'icon-1024.png',
+  'logos/blg-5.svg',
   'src/ui.js',
   'src/engine.js',
   'src/ai.js',

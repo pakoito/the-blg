@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>render</title></head>
+<body style="margin:0;background:transparent">
+<script>
+// Rasterize blg-5.svg to a transparent PNG of an exact pixel size by forcing the
+// SVG's intrinsic width/height to that size first (so Chromium renders the vector
+// at full resolution rather than upscaling a 512px bitmap → stays crisp).
+window.renderPNG = async function (size) {
+  const txt = await (await fetch('blg-5.svg?_=' + Date.now())).text();
+  const sized = txt
+    .replace(/width="\d+"/, 'width="' + size + '"')
+    .replace(/height="\d+"/, 'height="' + size + '"');
+  const url = URL.createObjectURL(new Blob([sized], { type: 'image/svg+xml' }));
+  const img = new Image();
+  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+  const c = document.createElement('canvas');
+  c.width = size; c.height = size;
+  c.getContext('2d').drawImage(img, 0, 0, size, size); // canvas starts transparent
+  URL.revokeObjectURL(url);
+  return c.toDataURL('image/png');
+};
+</script>
+</body></html>

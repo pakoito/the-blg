@@ -7,6 +7,7 @@
   <meta name="description" content="Play The Basic Land Game — a community Magic: The Gathering land variant." />
   <meta name="theme-color" content="#1a1a2e" />
   <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="logos/blg-5.svg" />
   <link rel="icon" href="icon-192.png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="stylesheet" href="styles.css" />
@@ -54,7 +55,7 @@
       </div>
 
       <div class="names-row">
-        <input id="name-0" type="text" maxlength="16" placeholder="You" value="You" />
+        <input id="name-0" type="text" maxlength="16" placeholder="Player" value="Player" />
         <input id="name-1" type="text" maxlength="16" placeholder="CPU" value="CPU" />
       </div>
 
@@ -134,6 +135,24 @@
     </div>
   </div>
 
+  <!-- ========== Portrait lock: shown only on phone-sized landscape ========== -->
+  <div id="rotate-notice">
+    <div class="rotate-inner">
+      <div class="rotate-icon">🔄📱</div>
+      <div class="rotate-title">Please rotate to portrait</div>
+      <div class="rotate-sub">The Basic Land Game is played upright.</div>
+    </div>
+  </div>
+
+  <script>
+    // Best-effort orientation lock (Android/Chromium standalone). Harmless where
+    // unsupported — the CSS #rotate-notice handles the rest.
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('portrait').catch(() => {});
+      }
+    } catch (e) { /* not supported (e.g. iOS Safari) — CSS fallback covers it */ }
+  </script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

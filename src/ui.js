@@ -82,12 +82,12 @@ function syncModeUI() {
   const firstWrap = $('first-pick-wrap');
   if (mode === 'cpu') {
     if (n1.value === 'Player 2' || n1.value === '') n1.value = 'CPU';
-    if (n0.value === 'Player 2' || n0.value === '') n0.value = 'You';
+    if (n0.value === 'Player 1' || n0.value === '') n0.value = 'Player';
     firstWrap.classList.remove('hidden');
-    $('first-0').textContent = n0.value || 'You';
+    $('first-0').textContent = n0.value || 'Player';
     $('first-1').textContent = n1.value || 'CPU';
   } else {
-    if (n0.value === 'You') n0.value = 'Player 1';
+    if (n0.value === 'Player') n0.value = 'Player 1';
     if (n1.value === 'CPU') n1.value = 'Player 2';
     // In 2P, first player is random (fair); hide the chooser.
     firstWrap.classList.add('hidden');

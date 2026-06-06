@@ -342,6 +342,29 @@ footer {
 .log-entry .who-0 { color: var(--p1); font-weight: 700; }
 .log-entry .who-1 { color: var(--p2); font-weight: 700; }
 
+/* ---------- Portrait lock ---------- */
+/* Hidden by default; only covers the screen on phone-sized landscape, so
+   desktop/tablet landscape is unaffected. Complements manifest orientation. */
+#rotate-notice { display: none; }
+@media (orientation: landscape) and (max-height: 540px) {
+  #rotate-notice {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+    background: var(--bg-dark, #1a1a2e);
+    color: var(--text-primary, #eee);
+  }
+  .rotate-icon { font-size: 3.4rem; margin-bottom: 0.6rem; animation: rotateHint 2.4s ease-in-out infinite; }
+  .rotate-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.35rem; }
+  .rotate-sub { font-size: 0.95rem; opacity: 0.75; }
+}
+@keyframes rotateHint { 0%, 70%, 100% { transform: rotate(0); } 80%, 90% { transform: rotate(-90deg); } }
+
 /* ---------- Beat toast (vs-CPU pacing notifications) ---------- */
 .toast {
   position: fixed;
