@@ -342,6 +342,47 @@ footer {
 .log-entry .who-0 { color: var(--p1); font-weight: 700; }
 .log-entry .who-1 { color: var(--p2); font-weight: 700; }
 
+/* ---------- Beat toast (vs-CPU pacing notifications) ---------- */
+.toast {
+  position: fixed;
+  top: 13%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 90; /* above the board, below full overlays (win/handoff/decision) */
+  max-width: min(92vw, 460px);
+  padding: 0.85rem 1.25rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(22, 22, 44, 0.97), rgba(40, 22, 60, 0.97));
+  border: 2px solid var(--accent-2);
+  box-shadow: 0 12px 44px rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  pointer-events: none; /* never blocks the board */
+  animation: toastIn 0.22s ease-out;
+}
+.toast.hidden { display: none; }
+.toast .who-0 { color: var(--p1); font-weight: 800; }
+.toast .who-1 { color: var(--p2); font-weight: 800; }
+.toast.k-counter { border-color: #ef4444; box-shadow: 0 12px 44px rgba(239, 68, 68, 0.4); }
+.toast.k-draw { border-color: #ffd54a; box-shadow: 0 12px 44px rgba(255, 213, 74, 0.35); }
+.toast.k-bog { border-color: #a855f7; }
+.toast.k-volcano { border-color: #fb7185; }
+@keyframes toastIn {
+  from { opacity: 0; transform: translate(-50%, -14px) scale(0.95); }
+  to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+
+/* Glow a freshly drawn / regrown card in your hand. */
+.card.just-drawn { animation: justDrawn 1.25s ease-out; }
+@keyframes justDrawn {
+  0% { box-shadow: 0 0 0 3px #fff, 0 0 26px 10px rgba(255, 255, 255, 0.85); transform: translateY(-6px) scale(1.06); }
+  55% { box-shadow: 0 0 0 2px #ffd54a, 0 0 20px 6px rgba(255, 213, 74, 0.6); transform: translateY(0) scale(1); }
+  100% { box-shadow: 0 0 0 2px rgba(255, 213, 74, 0.18); }
+}
+
 /* ---------- Generic overlay / modal ---------- */
 .overlay {
   position: fixed; inset: 0;

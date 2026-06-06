@@ -20,6 +20,11 @@ let viewerSeat = 0;        // whose private view is currently shown (2p handoff)
 let cpuTimer = null;
 let busy = false;          // guard against overlapping async loops
 
+// --- vs-CPU "beats": pacing so the human doesn't miss important events ---
+let presentedLogLen = 0;   // log entries already surfaced as paced beats
+let beatQueue = [];        // [{html, ms, kind}] toasts to show (with a pause) before continuing
+let prevViewerHand = null; // the viewer's hand at the previous render, for the just-drawn glow
+
 const $ = (id) => document.getElementById(id);
 const CPU_DELAY = 650;
 
@@ -146,6 +151,12 @@ function newGame(opts = {}) {
   // In 2P the first viewer is whoever must act first.
   if (mode === '2p' && game.awaiting) viewerSeat = game.awaiting.player;
 
+  // Reset beat/glow tracking for the fresh game (don't replay setup log as beats).
+  presentedLogLen = game.log.length;
+  beatQueue = [];
+  prevViewerHand = null;
+  hideToast();
+
   window.blg.game = game;
   hideAllOverlays();
   $('mode-overlay').classList.add('hidden');
@@ -159,12 +170,71 @@ function hideAllOverlays() {
   ['handoff', 'decision', 'win-overlay'].forEach((id) => $(id).classList.add('hidden'));
 }
 
+// ---- Paced "beats" ---------------------------------------------------------
+// In vs-CPU play the engine resolves several things in one step (you draw AND
+// the CPU's turn begins; the CPU counters AND takes its turn). Without pacing,
+// the human misses what just happened to them. A "beat" is a brief center-screen
+// toast shown with a short pause before the game continues. Beats are a vs-CPU
+// aid only; 2P handoffs already pace the game, and window.blg automation skips
+// them entirely (it keeps presentedLogLen in sync without queuing).
+function queueBeat(html, ms, kind) {
+  beatQueue.push({ html, ms, kind: kind || '' });
+}
+
+function showToast(html, kind) {
+  const el = $('toast');
+  if (!el) return;
+  el.className = 'toast k-' + (kind || '');
+  el.innerHTML = html;
+}
+
+function hideToast() {
+  const el = $('toast');
+  if (el) el.className = 'toast hidden';
+}
+
+// Turn noteworthy log entries added since last time into beats. The events that
+// matter most are the ones the CPU does TO the human, which otherwise scroll by.
+function collectBeats() {
+  const fresh = game.log.slice(presentedLogLen);
+  presentedLogLen = game.log.length;
+  if (mode !== 'cpu') return;
+  const human = humanSeats[0];
+  for (const e of fresh) {
+    if (e.kind === 'countered') {
+      const by = other(e.player);
+      const whose = e.player === human ? 'your' : `${whoSpan(e.player)}’s`;
+      queueBeat(`⚡ <b>Force of Will!</b> ${whoSpan(by)} countered ${whose} ${emoji(e.type)} <b>${name(e.type)}</b>.`, 1700, 'counter');
+    } else if (e.kind === 'bog-discard' && e.target === human) {
+      queueBeat(`💀 ${whoSpan(e.player)}’s Bog made you discard ${emoji(e.type)} <b>${name(e.type)}</b>.`, 1500, 'bog');
+    } else if (e.kind === 'volcano-destroy' && e.target === human) {
+      queueBeat(`💥 ${whoSpan(e.player)} destroyed your ${emoji(e.type)} <b>${name(e.type)}</b>.`, 1400, 'volcano');
+    }
+  }
+}
+
 // The driver: process whatever the engine is awaiting.
+// - Pending beats: show one (with a pause), then continue.
 // - CPU seats: auto-play (with delay) until human/over.
 // - Human seats: show the appropriate prompt (and handoff in 2P).
 function drive() {
   if (busy) return;
   if (!game) return;
+
+  // Surface any queued beats first, one at a time, each holding for its duration.
+  if (beatQueue.length) {
+    const b = beatQueue.shift();
+    busy = true;
+    try { showToast(b.html, b.kind); } catch (err) { console.error('toast failed', err); }
+    cpuTimer = setTimeout(() => {
+      cpuTimer = null;
+      busy = false; // release the guard first, so a later throw can't freeze the game
+      hideToast();
+      render();
+      drive();
+    }, b.ms);
+    return;
+  }
 
   if (game.winner) {
     showWin();
@@ -205,11 +275,15 @@ function runCpuStep() {
     try {
       const action = chooseAction(game, cpuSeat);
       apply(game, action);
+      collectBeats();
     } catch (err) {
       console.error('CPU step failed', err);
+    } finally {
+      // Always release the guard, even if something above throws, so the game
+      // can never freeze with busy stuck true.
+      window.blg.game = game;
+      busy = false;
     }
-    window.blg.game = game;
-    busy = false;
     render();
     drive();
   }, CPU_DELAY);
@@ -238,16 +312,39 @@ function presentHumanDecision(aw) {
 }
 
 function doApply(action) {
+  if (busy) return; // ignore stray clicks while a beat/handoff is in progress
+  const human = mode === 'cpu' ? humanSeats[0] : null;
+  const handBefore = human != null ? [...game.players[human].hand] : null;
   try {
     apply(game, action);
   } catch (err) {
     console.error('apply failed', action, err);
     return;
   }
+  // Announce what the human drew/gained from their OWN action (e.g. a Meadow's
+  // draw) before the CPU's turn can whisk it away.
+  if (human != null) {
+    for (const t of multisetDiff(game.players[human].hand, handBefore)) {
+      queueBeat(`🃏 You drew ${emoji(t)} <b>${name(t)}</b>.`, 1100, 'draw');
+    }
+  }
+  collectBeats();
   window.blg.game = game;
   hideDecision();
   render();
   drive();
+}
+
+// Cards present in `after` beyond what `before` accounts for (with multiplicity).
+function multisetDiff(after, before) {
+  const b = {};
+  for (const t of before) b[t] = (b[t] || 0) + 1;
+  const out = [];
+  for (const t of after) {
+    if (b[t] > 0) b[t]--;
+    else out.push(t);
+  }
+  return out;
 }
 
 // ---- playLand: handled by clicking a hand card (see renderMyHand) ----------
@@ -390,6 +487,7 @@ function showHandoff(nextSeat) {
   $('handoff').classList.remove('hidden');
   $('handoff-ready').onclick = () => {
     viewerSeat = nextSeat;
+    prevViewerHand = null; // new perspective: don't glow the whole hand as "drawn"
     busy = false;
     $('handoff').classList.add('hidden');
     render();
@@ -420,6 +518,25 @@ function render() {
   renderPanel($('opp-panel'), v, seat, /*isOpp*/ true);
   renderPanel($('me-panel'), v, seat, /*isOpp*/ false);
   renderLog(v);
+  applyDrawGlow(v);
+}
+
+// Glow the viewer's newly-gained hand cards (draws, Forest returns) so a fresh
+// card is obvious at a glance. prevViewerHand is reset on new game / handoff so
+// switching perspective doesn't light up the whole hand.
+function applyDrawGlow(v) {
+  const cur = v.my.hand;
+  if (prevViewerHand === null) { prevViewerHand = [...cur]; return; }
+  const gained = multisetDiff(cur, prevViewerHand);
+  prevViewerHand = [...cur];
+  if (!gained.length) return;
+  const need = {};
+  for (const t of gained) need[t] = (need[t] || 0) + 1;
+  const cards = [...document.querySelectorAll('#me-panel .card')];
+  for (let i = cards.length - 1; i >= 0; i--) {
+    const t = cards[i].dataset.card;
+    if (need[t] > 0) { cards[i].classList.add('just-drawn'); need[t]--; }
+  }
 }
 
 // In CPU mode the viewer is always the human; in 2P it is whoever holds device.
@@ -698,6 +815,7 @@ function setupAgentApi() {
     state() { return fullState(game); },
     apply(action) {
       apply(game, action);
+      presentedLogLen = game.log.length; // automation bypasses paced beats
       window.blg.game = game;
       render();
       drive();
@@ -712,6 +830,7 @@ function setupAgentApi() {
       const s = game.awaiting.player;
       const action = chooseAction(game, s);
       apply(game, action);
+      presentedLogLen = game.log.length; // automation bypasses paced beats
       window.blg.game = game;
       render();
       drive();
