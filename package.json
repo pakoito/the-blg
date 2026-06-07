@@ -6,6 +6,7 @@
   "scripts": {
     "test": "node --test",
     "selfplay": "node tests/play.mjs",
+    "arena": "node tests/arena.mjs",
     "serve": "node serve.mjs"
   },
   "license": "MIT"

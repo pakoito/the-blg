@@ -72,7 +72,7 @@ function choosePlay(game, p) {
   let best = null;
   let bestScore = -Infinity;
   for (const t of options) {
-    const s = playScore(t, { me, opp, myCounts, oppDistance, tideInHand, options });
+    const s = playScore(t, { me, opp, myCounts, oppDistance, tideInHand, options, config: game.config });
     if (s > bestScore) {
       bestScore = s;
       best = t;
@@ -88,22 +88,54 @@ function protectScore(hand, winType) {
   return left >= 1 ? 1 : 0;
 }
 
+// CLOUD VARIANT only: the value of playing a Meadow (Cloudshift), measured by the
+// best enter-effect we could re-trigger among the lands we already control. The
+// just-played Meadow itself is excluded by the engine, so a second Meadow can
+// still chain another flicker.
+function cloudshiftValue(myCounts, me, opp) {
+  let best = 0;
+  if (myCounts.tide >= 1) best = Math.max(best, 40);                              // re-draw
+  if (myCounts.volcano >= 1 && opp.board.length > 0) best = Math.max(best, 45);   // re-destroy
+  if (myCounts.forest >= 1 && me.discard.length > 0) best = Math.max(best, 35);   // re-rebuy
+  if (myCounts.bog >= 1 && opp.hand.length > 0) best = Math.max(best, 30);        // re-strip
+  if (myCounts.meadow >= 2) best = Math.max(best, 28);                            // chain a flicker
+  return best;
+}
+
 function playScore(t, ctx) {
-  const { me, opp, myCounts, oppDistance, tideInHand, options } = ctx;
+  const { me, opp, myCounts, oppDistance, tideInHand, options, config } = ctx;
+  const cloud = config && config.blueDrawWhiteCloudshift;
   const tempoPositive = myCounts[t] === 0;
   let s = tempoPositive ? 100 : 0; // the central rule: tempo-positive lands lead
 
   switch (t) {
     case 'tide':
-      // Hold Tides for counters. Only acceptable as a land drop if it's the only
-      // thing we can do — and even then it's a last resort.
+      if (cloud) {
+        // CLOUD VARIANT — Tide DRAWS a card on enter, so don't hoard it. Keep a
+        // Force-of-Will reserve (two Tides when the opponent is within striking
+        // distance, so we can counter or "force the force"); spend the rest as
+        // card-advantage plays. The +25-when-spare nudge is what tips us into
+        // leading with the drawing Tide early, which compounds into faster wins.
+        const reserve = oppDistance <= 2 ? 2 : 0;
+        const spare = tideInHand - reserve;
+        if (tempoPositive) s = 100 + (spare >= 1 ? 25 : 0); // a fresh Rainbow piece that also draws
+        else if (spare >= 1) s = 55;                         // redundant, but still draws a card
+        else s = -200 + (options.length === 1 ? 400 : 0);    // last Tide while threatened → hold it
+        break;
+      }
+      // Base game: hold Tides for counters; only play one as a last resort.
       s = -200 + (options.length === 1 ? 400 : 0);
-      // If a Tide is genuinely a Rainbow piece we lack, nudge it up a touch, but
-      // still below any real alternative.
-      if (tempoPositive) s += 30;
+      if (tempoPositive) s += 30; // a Rainbow piece we lack — nudge up, still below real plays
       break;
     case 'meadow':
-      // Draw is great early and even a redundant Meadow refills the hand.
+      if (cloud) {
+        // CLOUD VARIANT — Meadow is Cloudshift (re-trigger a land), not a draw.
+        // Value it by the best re-trigger actually available on our board; a lone
+        // Meadow with nothing useful to flicker is correctly cheap.
+        s += (tempoPositive ? 18 : 0) + cloudshiftValue(myCounts, me, opp);
+        break;
+      }
+      // Base game: draw is great early and even a redundant Meadow refills the hand.
       s += tempoPositive ? 35 : 18;
       break;
     case 'forest': {
