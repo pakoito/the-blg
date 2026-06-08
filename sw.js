@@ -2,7 +2,7 @@
 // Cache-first, precaches every app asset so the game plays fully offline.
 // Bump CACHE_VERSION whenever any precached asset changes.
 
-const CACHE_VERSION = 'blg-v7';
+const CACHE_VERSION = 'blg-v8';
 
 // All app assets. Paths are relative to the service-worker scope (the project
 // root), so this works regardless of where the app is hosted.

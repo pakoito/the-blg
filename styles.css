@@ -572,6 +572,19 @@ footer {
 .btn-yes { background: var(--accent-3); }
 .btn-no { background: var(--accent-1); }
 .btn-confirm { background: var(--accent-2); }
+
+/* In-game pause menu: full-width, comfortably tappable buttons. */
+.menu-actions { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1rem; }
+.menu-actions button {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: none;
+  border-radius: 9px;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: #fff;
+}
+.menu-actions .primary-btn { margin-top: 0; } /* the flex gap handles spacing */
 .btn-confirm:disabled { background: #444; cursor: not-allowed; }
 
 /* Handoff screen */

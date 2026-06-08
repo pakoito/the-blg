@@ -916,8 +916,8 @@ function boot() {
   setupAgentApi();
   initModeScreen();
 
+  // Rules are reached from the in-game Menu (no top-level Rules button).
   const openRules = () => { buildRulesContent(); $('rules-modal').classList.remove('hidden'); };
-  $('btn-rules').addEventListener('click', openRules);
   $('btn-close-rules').addEventListener('click', () => $('rules-modal').classList.add('hidden'));
   $('rules-modal').addEventListener('click', (e) => {
     if (e.target === $('rules-modal')) $('rules-modal').classList.add('hidden');
