@@ -41,6 +41,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Stamp build version (commit + date)
+        run: |
+          printf 'window.__BLG_VERSION__ = { commit: "%s", date: "%s" };\n' \
+            "$(git rev-parse --short HEAD)" "$(date -u +%Y-%m-%d)" > version.js
+          cat version.js
       - uses: actions/configure-pages@v5
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3

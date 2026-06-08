@@ -433,6 +433,36 @@ footer {
 .modal h2 .emojis { -webkit-text-fill-color: initial; }
 .modal p.lead { color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5; }
 
+/* In-game decision dialogs float over the board WITHOUT dimming it, so the
+   player can still read the (incomplete) board state behind them. */
+#decision { background: transparent; }
+#decision .modal {
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.8), 0 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Sticky Play footer: reachable without scrolling the (tall) mode dialog. */
+#mode-overlay .modal { position: relative; }
+.mode-actions {
+  position: sticky;
+  bottom: -1.5rem; /* hug the modal's padded bottom edge */
+  margin: 0.8rem -1.5rem -1.5rem; /* full-bleed across the modal padding */
+  padding: 0.9rem 1.5rem 1rem;
+  background: linear-gradient(to top, var(--bg-panel) 72%, rgba(22, 33, 62, 0));
+  z-index: 2;
+}
+.mode-actions #start-game { margin: 0; width: 100%; }
+
+/* Version stamp, top-left of the rules popup (short, left-aligned, in flow — so
+   it never overlaps the title or the top-right close button). */
+.rules-version {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.35rem;
+}
+
 /* Mode selection */
 .mode-grid { display: flex; gap: 0.7rem; margin-bottom: 1.1rem; }
 .mode-option {

@@ -91,7 +91,9 @@
         </div>
       </label>
 
-      <button id="start-game" class="primary-btn">▶ Start Game</button>
+      <div class="mode-actions">
+        <button id="start-game" class="primary-btn">▶ Start Game</button>
+      </div>
     </div>
   </div>
 
@@ -116,9 +118,23 @@
     </div>
   </div>
 
+  <!-- ========== In-game menu (pause — does NOT abandon the game) ========== -->
+  <div id="menu-modal" class="overlay hidden">
+    <div class="modal menu-modal-inner">
+      <h2>⏸️ Paused</h2>
+      <p class="lead">Your game is still here. Resume any time.</p>
+      <div class="menu-actions">
+        <button id="menu-resume" class="primary-btn">▶ Resume game</button>
+        <button id="menu-rules" class="btn-no">📖 Rules</button>
+        <button id="menu-main" class="btn-no">⏏️ Main menu (abandon game)</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ========== Rules ========== -->
   <div id="rules-modal" class="overlay hidden">
     <div class="modal">
+      <div class="rules-version" id="rules-version"></div>
       <button class="modal-close" id="btn-close-rules">✕</button>
       <h2>📖 How to play</h2>
       <div id="rules-content"></div>
@@ -160,6 +176,8 @@
       });
     }
   </script>
+  <!-- Build stamp (commit + date), injected at deploy time; dev fallback in repo. -->
+  <script src="version.js"></script>
   <script type="module" src="src/ui.js"></script>
 </body>
 </html>

@@ -73,6 +73,43 @@ function initModeScreen() {
   });
 
   $('start-game').addEventListener('click', startFromModeScreen);
+  restoreSettings();
+}
+
+// ---- Settings persistence: remember the previous game's mode/names/variants --
+const SETTINGS_KEY = 'blg.settings';
+
+function saveSettings() {
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+      mode,
+      names: [$('name-0').value, $('name-1').value],
+      first: selectedFirst(),
+      thoughtseize: $('v-thoughtseize').checked,
+      bluewhite: $('v-bluewhite').checked,
+      fifty: $('v-fifty').checked,
+    }));
+  } catch (e) { /* storage unavailable (e.g. private mode) — non-fatal */ }
+}
+
+function restoreSettings() {
+  let data = null;
+  try { data = JSON.parse(localStorage.getItem(SETTINGS_KEY) || 'null'); } catch (e) { data = null; }
+  if (data) {
+    if (data.mode === 'cpu' || data.mode === '2p') {
+      mode = data.mode;
+      document.querySelectorAll('.mode-option').forEach((o) => o.classList.toggle('selected', o.dataset.mode === mode));
+    }
+    if (Array.isArray(data.names)) {
+      if (typeof data.names[0] === 'string') $('name-0').value = data.names[0];
+      if (typeof data.names[1] === 'string') $('name-1').value = data.names[1];
+    }
+    $('v-thoughtseize').checked = !!data.thoughtseize;
+    $('v-bluewhite').checked = !!data.bluewhite;
+    $('v-fifty').checked = !!data.fifty;
+    const f = data.first || 'random';
+    document.querySelectorAll('#first-pick button').forEach((b) => b.classList.toggle('selected', b.dataset.first === f));
+  }
   syncModeUI();
 }
 
@@ -115,6 +152,7 @@ function startFromModeScreen() {
     firstPlayer = undefined; // random in 2P
   }
 
+  saveSettings(); // remember these choices for next time
   newGame({ mode, config, names, firstPlayer });
   $('mode-overlay').classList.add('hidden');
   $('app').classList.remove('hidden');
@@ -167,7 +205,18 @@ function newGame(opts = {}) {
 }
 
 function hideAllOverlays() {
-  ['handoff', 'decision', 'win-overlay'].forEach((id) => $(id).classList.add('hidden'));
+  ['handoff', 'decision', 'win-overlay', 'menu-modal'].forEach((id) => $(id).classList.add('hidden'));
+}
+
+// Tear down the current game and return to the mode screen, pre-filled with the
+// previous game's settings. (Used by "Play again" and the menu's "Main menu".)
+function toMainMenu() {
+  if (cpuTimer) { clearTimeout(cpuTimer); cpuTimer = null; }
+  busy = false;
+  hideAllOverlays();
+  restoreSettings();
+  $('app').classList.add('hidden');
+  $('mode-overlay').classList.remove('hidden');
 }
 
 // ---- Paced "beats" ---------------------------------------------------------
@@ -732,6 +781,9 @@ function showWin() {
 // RULES MODAL
 // =====================================================================
 function buildRulesContent() {
+  const v = window.__BLG_VERSION__;
+  const vEl = $('rules-version');
+  if (vEl) vEl.textContent = v && v.commit ? `${v.commit} · ${v.date}` : 'dev build';
   const cfg = game ? game.config : makeConfig();
   const cards = TYPES.map((t) => {
     const c = CARDS[t];
@@ -864,28 +916,24 @@ function boot() {
   setupAgentApi();
   initModeScreen();
 
-  $('btn-rules').addEventListener('click', () => {
-    buildRulesContent();
-    $('rules-modal').classList.remove('hidden');
-  });
+  const openRules = () => { buildRulesContent(); $('rules-modal').classList.remove('hidden'); };
+  $('btn-rules').addEventListener('click', openRules);
   $('btn-close-rules').addEventListener('click', () => $('rules-modal').classList.add('hidden'));
   $('rules-modal').addEventListener('click', (e) => {
     if (e.target === $('rules-modal')) $('rules-modal').classList.add('hidden');
   });
 
-  $('btn-menu').addEventListener('click', () => {
-    if (cpuTimer) { clearTimeout(cpuTimer); cpuTimer = null; }
-    busy = false;
-    hideAllOverlays();
-    $('app').classList.add('hidden');
-    $('mode-overlay').classList.remove('hidden');
+  // The in-game Menu is a PAUSE — it never touches game state. Only "Main menu"
+  // abandons the game; Resume (or tapping outside) just closes the dialog.
+  $('btn-menu').addEventListener('click', () => $('menu-modal').classList.remove('hidden'));
+  $('menu-resume').addEventListener('click', () => $('menu-modal').classList.add('hidden'));
+  $('menu-modal').addEventListener('click', (e) => {
+    if (e.target === $('menu-modal')) $('menu-modal').classList.add('hidden'); // outside tap = resume
   });
+  $('menu-rules').addEventListener('click', () => { $('menu-modal').classList.add('hidden'); openRules(); });
+  $('menu-main').addEventListener('click', () => { $('menu-modal').classList.add('hidden'); toMainMenu(); });
 
-  $('btn-play-again').addEventListener('click', () => {
-    $('win-overlay').classList.add('hidden');
-    $('app').classList.add('hidden');
-    $('mode-overlay').classList.remove('hidden');
-  });
+  $('btn-play-again').addEventListener('click', () => { $('win-overlay').classList.add('hidden'); toMainMenu(); });
 }
 
 if (document.readyState === 'loading') {
